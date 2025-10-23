@@ -1,0 +1,234 @@
+/* ✨ Custom Scrollbar LOCAL - Para elementos específicos del componente */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 31, 67, 0.4) rgba(11, 0, 12, 0.5);
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(11, 0, 12, 0.7);
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, 
+      rgba(255, 31, 67, 0.6) 0%, 
+      rgba(229, 9, 20, 0.6) 50%,
+      rgba(143, 0, 28, 0.6) 100%);
+    border-radius: 3px;
+    border: 1px solid rgba(143, 0, 28, 0.3);
+    transition: all 0.3s ease;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, 
+      rgba(255, 31, 67, 0.9) 0%, 
+      rgba(229, 9, 20, 0.9) 50%,
+      rgba(143, 0, 28, 0.9) 100%);
+    transform: scaleX(1.1);
+    box-shadow: 0 0 8px rgba(255, 31, 67, 0.4);
+  }
+
+  &::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(180deg, 
+      rgba(255, 31, 67, 1) 0%, 
+      rgba(229, 9, 20, 1) 50%,
+      rgba(143, 0, 28, 1) 100%);
+    box-shadow: 0 0 12px rgba(255, 31, 67, 0.6);
+  }
+}
+
+/* Variación para contenido general */
+.custom-scrollbar-neutral {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 31, 67, 0.3) rgba(11, 0, 12, 0.3);
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(11, 0, 12, 0.5);
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 31, 67, 0.4);
+    border-radius: 3px;
+    transition: all 0.2s ease;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 31, 67, 0.6);
+  }
+}
+
+// 🎯 DRAG AND DROP STYLES - Usando la paleta de colores principal
+.dropzone {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(255, 31, 67, 0.3);
+  background-color: rgba(11, 0, 12, 0.2);
+}
+
+.dropzone:hover {
+  border-color: rgba(255, 31, 67, 0.4);
+  background-color: rgba(255, 31, 67, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 31, 67, 0.15);
+}
+
+// Estado cuando se arrastra sobre la zona
+.drag-over {
+  border-color: rgba(255, 31, 67, 0.8) !important;
+  background-color: rgba(255, 31, 67, 0.1) !important;
+  border-width: 2px !important;
+  transform: scale(1.02) translateY(-4px) !important;
+  animation: pulse-border 1.5s infinite, glow 2s ease-in-out infinite alternate;
+  box-shadow: 0 10px 25px rgba(255, 31, 67, 0.3), 0 0 0 3px rgba(255, 31, 67, 0.2) !important;
+}
+
+// Estado idle (sin arrastrar)
+.drag-idle {
+  border-color: rgba(255, 31, 67, 0.3);
+  background-color: rgba(11, 0, 12, 0.2);
+}
+
+// Estados específicos para un archivo
+.single-file {
+  .icon-container {
+    color: rgba(255, 31, 67, 0.8) !important;
+    transform: scale(1.1);
+    animation: bounce-icon 0.6s ease-in-out infinite alternate;
+  }
+}
+
+// Estados específicos para múltiples archivos
+.multiple-files {
+  .icon-container {
+    color: rgba(255, 31, 67, 0.9) !important;
+    transform: scale(1.15);
+    animation: pulse 1s infinite;
+  }
+}
+
+// Contenedor del icono
+.icon-container {
+  transition: all 0.3s ease;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+// Animaciones
+@keyframes pulse-border {
+  0%, 100% {
+    border-color: rgba(255, 31, 67, 0.8);
+  }
+  50% {
+    border-color: rgba(255, 31, 67, 1);
+  }
+}
+
+@keyframes glow {
+  0% {
+    box-shadow: 0 10px 25px rgba(255, 31, 67, 0.3), 0 0 0 3px rgba(255, 31, 67, 0.2);
+  }
+  100% {
+    box-shadow: 0 15px 35px rgba(255, 31, 67, 0.4), 0 0 0 4px rgba(255, 31, 67, 0.3);
+  }
+}
+
+@keyframes bounce-icon {
+  0% {
+    transform: scale(1.1) translateY(0px);
+  }
+  100% {
+    transform: scale(1.1) translateY(-5px);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+}
+
+// 👁️ DROPDOWN METADATA ANIMATIONS
+.metadata-content {
+  &.expanded {
+    max-height: 500px;
+    opacity: 1;
+    animation: expand-metadata 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+  
+  &.collapsed {
+    max-height: 0;
+    opacity: 0;
+    animation: collapse-metadata 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+}
+
+@keyframes expand-metadata {
+  0% {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    max-height: 500px;
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes collapse-metadata {
+  0% {
+    max-height: 500px;
+    opacity: 1;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+// Hover effects para dropdowns
+.metadata-content .bg-slate-700\/40 {
+  transition: all 0.3s ease;
+}
+
+.metadata-content .bg-slate-700\/40:hover {
+  background-color: rgba(51, 65, 85, 0.6) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+// Icono de ojo con animación
+.fas.fa-eye {
+  transition: all 0.3s ease;
+  animation: eye-blink 3s infinite;
+}
+
+@keyframes eye-blink {
+  0%, 90%, 100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.1);
+  }
+}
