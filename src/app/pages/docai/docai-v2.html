@@ -201,6 +201,9 @@
           (click)="classifyWithAIV2()"
           [disabled]="!file() || isProcessing()"
           class="w-full py-2.5 px-4 bg-gradient-to-r from-main to-secondary hover:from-hover hover:to-main disabled:opacity-50 text-white font-medium rounded-lg transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-main/25 hover:scale-105"
+          [ngClass]="{
+            'from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 shadow-green-400/30': file()
+          }"
         >
           @if (isProcessing()) {
             <div class="flex items-center gap-4">
