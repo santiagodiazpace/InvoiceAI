@@ -35,7 +35,7 @@
       
       <!-- Drop Zone Compacta -->
       <div 
-        class="relative border-2 border-dashed rounded-xl p-6 text-center transition-all duration-300 dropzone"
+        class="relative mt-16 border-2 border-dashed rounded-xl p-6 text-center transition-all duration-300 dropzone"
         [ngClass]="{
           'drag-over': isDragOver(),
           'drag-idle': !isDragOver(),
@@ -201,6 +201,7 @@
           (click)="classifyWithAIV2()"
           [disabled]="!file() || isProcessing()"
           class="w-full py-2.5 px-4 bg-gradient-to-r from-main to-secondary hover:from-hover hover:to-main disabled:opacity-50 text-white font-medium rounded-lg transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-main/25 hover:scale-105"
+          [ngClass]="{ 'from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 shadow-green-400/30': file() }"
         >
           @if (isProcessing()) {
             <div class="flex items-center gap-4">
@@ -319,7 +320,7 @@
         @for (archivo of archivosProcesados(); track $index) {
           <div class="bg-slate-700/60 rounded-lg border border-slate-600/50 overflow-hidden" data-aos="fade-up" [attr.data-aos-delay]="$index * 100">
             <!-- Header del dropdown para cada archivo -->
-            <div class="p-3 cursor-pointer hover:bg-slate-600/30 transition-colors" 
+            <div class="p-3 cursor-pointer hover:bg-slate-600/30 transition-colores" 
                  (click)="toggleMetadatos('archivo_' + $index)">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3 flex-1 min-w-0">
