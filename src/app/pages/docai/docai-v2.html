@@ -278,14 +278,24 @@
                 <span class="text-xs text-slate-400">Monto:</span>
                 <span class="text-xs text-white font-medium">{{ extractedData()?.monto_total ? '$' + extractedData()?.monto_total : 'N/A' }}</span>
               </div>
-              <div class="flex justify-between">
+              <div class="flex justify-between items-center">
                 <span class="text-xs text-slate-400">Confianza:</span>
-                <span class="text-xs font-medium"
-                      [class.text-green-400]="(extractedData()?.confidence || 0) >= 0.8"
-                      [class.text-yellow-400]="(extractedData()?.confidence || 0) >= 0.5 && (extractedData()?.confidence || 0) < 0.8"
-                      [class.text-red-400]="(extractedData()?.confidence || 0) < 0.5">
-                  {{ ((extractedData()?.confidence || 0) * 100) | number:'1.0-1' }}%
-                </span>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-medium"
+                        [class.text-green-400]="(extractedData()?.confidence || 0) >= 0.8"
+                        [class.text-yellow-400]="(extractedData()?.confidence || 0) >= 0.5 && (extractedData()?.confidence || 0) < 0.8"
+                        [class.text-red-400]="(extractedData()?.confidence || 0) < 0.5">
+                    {{ ((extractedData()?.confidence || 0) * 100) | number:'1.0-1' }}%
+                  </span>
+                  @switch (verificarEstadoFactura(extractedData()?.monto_total)) {
+                    @case ('PAGAR') {
+                      <span class="text-xs px-2 py-0.5 bg-green-500 text-white rounded-full">PAGAR</span>
+                    }
+                    @case ('EMAIL') {
+                      <span class="text-xs px-2 py-0.5 bg-blue-500 text-white rounded-full">E-MAIL</span>
+                    }
+                  }
+                </div>
               </div>
             </div>
           </div>
@@ -331,9 +341,19 @@
                   </div>
                 </div>
                 <div class="flex items-center gap-2">
-                  <span class="text-xs text-slate-400 bg-slate-800 px-2 py-1 rounded">
-                    {{ ((archivo.data.confidence || 0) * 100) | number:'1.0-1' }}%
-                  </span>
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-400 bg-slate-800 px-2 py-1 rounded">
+                      {{ ((archivo.data.confidence || 0) * 100) | number:'1.0-1' }}%
+                    </span>
+                    @switch (verificarEstadoFactura(archivo?.data?.monto_total)) {
+                      @case ('PAGAR') {
+                        <span class="text-xs px-2 py-0.5 bg-green-500 text-white rounded-full">PAGAR</span>
+                      }
+                      @case ('EMAIL') {
+                        <span class="text-xs px-2 py-0.5 bg-blue-500 text-white rounded-full">E-MAIL</span>
+                      }
+                    }
+                  </div>
                   <button
                     (click)="eliminarArchivoProcesado($index); $event.stopPropagation()"
                     class="p-1 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded"

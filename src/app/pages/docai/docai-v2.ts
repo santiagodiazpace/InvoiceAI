@@ -93,6 +93,14 @@ export class DocAIV2 {
   extractedData = signal<ComprobanteInfoV2 | null>(null);
   isDragOver = signal<boolean>(false);
   dragFileCount = signal<number>(0); // Contador de archivos durante drag
+  mostrarPagar = signal<boolean>(false); // Signal para controlar la leyenda PAGAR
+  mostrarEmail = signal<boolean>(false); // Signal para controlar la leyenda EMAIL
+
+  // Método para verificar el estado de pago de una factura
+  verificarEstadoFactura(monto?: number): 'PAGAR' | 'EMAIL' | null {
+    if (!monto) return null;
+    return monto < 50000 ? 'PAGAR' : 'EMAIL';
+  }
 
   // Nueva funcionalidad para múltiples archivos
   colaArchivos = signal<File[]>([]);
@@ -271,6 +279,7 @@ export class DocAIV2 {
     this.colaArchivos.set([]);
     this.archivoActual.set(0);
     this.procesandoMultiples.set(false);
+    this.mostrarPagar.set(false); // Reset the PAGAR indicator
   }
 
   // --- Métodos para múltiples archivos ---
@@ -327,7 +336,7 @@ export class DocAIV2 {
     }
   }
 
-  // Versión del clasificador para uso interno (sin UI updates)
+  // Versión del clasificador para uso interno (sin UI updates) TODO:
   private async classifyWithAISingle(file: File): Promise<ComprobanteInfoV2> {
     const b64 = await this.fileToBase64(file);
 
@@ -716,27 +725,22 @@ EJEMPLO para Factura E:
     try {
       const b64 = await this.fileToBase64(f);
 
-      const prompt = `Analiza este documento PDF para el sistema ODA Invoice.
+      //TODO: PROMPT USADO PARA FACTURAS
 
-IMPORTANTE: Debes ser MUY ESPECÍFICO con el tipo exacto de comprobante.
+      const prompt = `Analiza esta factura PDF para el sistema InvoiceIA.
+
+IMPORTANTE: Debes ser MUY ESPECÍFICO con el tipo exacto de factura.
 
 EXTRAE INFORMACIÓN ESPECÍFICA PARA FORMATO: AAAA-MM-CCCC-NNNN-EEEE.pdf
 
-DETECCIÓN PRIORITARIA - BUSCA EXACTAMENTE:
-1. FACTURAS: Busca en el documento el tipo específico
-   - Si ves "FACTURA A" o "COD A" → subtipo_comprobante: "Factura A"
-   - Si ves "FACTURA B" o "COD B" → subtipo_comprobante: "Factura B"  
-   - Si ves "FACTURA C" o "COD C" → subtipo_comprobante: "Factura C"
-   - Si ves "FACTURA E" o "COD E" o "EXPORTACIÓN" → subtipo_comprobante: "Factura E"
-   - Si es FCE → subtipo_comprobante: "Factura de Crédito Electrónica MiPyMEs (FCE) A"
-
-2. NOTAS: "Nota de Crédito A", "Nota de Débito A", etc.
-
-3. INFORMES: Reportes, consultorías, supervisiones → subtipo_comprobante: "Informe"
-
-4. ÓRDENES DE PAGO: Autorizaciones → subtipo_comprobante: "Orden de Pago"
-
-5. RETENCIONES: Certificados → subtipo_comprobante: "Retención"
+DETECCIÓN DE TIPO DE FACTURA - BUSCA EXACTAMENTE:
+- Si ves "FACTURA A" o "COD A" → subtipo_comprobante: "Factura A"
+- Si ves "FACTURA B" o "COD B" → subtipo_comprobante: "Factura B"  
+- Si ves "FACTURA C" o "COD C" → subtipo_comprobante: "Factura C"
+- Si ves "FACTURA E" o "COD E" o "EXPORTACIÓN" → subtipo_comprobante: "Factura E"
+- Si es FCE → subtipo_comprobante: "Factura de Crédito Electrónica MiPyMEs (FCE) A"
+- Si es Nota de Crédito → subtipo_comprobante: "Nota de Crédito A/B" (según corresponda)
+- Si es Nota de Débito → subtipo_comprobante: "Nota de Débito A/B" (según corresponda)
 
 EXTRACCIÓN DE NÚMEROS - MUY IMPORTANTE:
 - Busca "Comp. Nro:" o "Número:" seguido del formato "XXXX-XXXXXXXX"
@@ -786,7 +790,7 @@ EJEMPLO para Factura E:
             properties: {
               tipo_comprobante: {
                 type: 'STRING',
-                enum: ['factura', 'orden_de_pago', 'retenciones', 'informe', 'desconocido']
+                enum: ['factura']
               },
               subtipo_comprobante: { type: 'STRING' },
               numero_comprobante: { type: 'STRING' },
@@ -883,11 +887,64 @@ EJEMPLO para Factura E:
       // Agregar archivo a la lista para que aparezca en la UI
       this.agregarArchivoProcessado(f, finalName, fullPath, out);
 
+      // Evaluar el importe y tomar acciones
+      this.evaluarImporte(out);
+
     } catch (e: any) {
       this.error.set(e?.message || 'No se pudo clasificar con IA V2.');
     } finally {
       this.isProcessing.set(false);
     }
+  }
+
+  // Método para evaluar el importe y tomar acciones
+  private evaluarImporte(datos: ComprobanteInfoV2) {
+    if (!datos.monto_total) {
+      console.log('⚠️ No se encontró monto total en la factura');
+      this.mostrarPagar.set(false);
+      return;
+    }
+
+    if (datos.monto_total < 50000) {
+      // Si es menor a $50000, mostrar leyenda PAGAR
+      console.log('✅ PAGAR - Monto: $' + datos.monto_total.toLocaleString('es-AR'));
+      this.mostrarPagar.set(true);
+      return 'PAGAR';
+    } else {
+      // Si es mayor a $50000, enviar email
+      this.enviarEmailFactura(datos);
+      console.log('📧 Email enviado - Monto: $' + datos.monto_total.toLocaleString('es-AR'));
+      this.mostrarPagar.set(false);
+      return 'EMAIL_ENVIADO';
+    }
+  }
+
+  // Método para enviar email con los datos de la factura
+  private async enviarEmailFactura(datos: ComprobanteInfoV2) {
+    const asunto = `Factura para revisión - ${datos.subtipo_comprobante || 'Factura'} - $${datos.monto_total?.toLocaleString('es-AR')}`;
+    
+    const cuerpo = `
+    Se requiere revisión de la siguiente factura:
+    
+    Tipo: ${datos.subtipo_comprobante}
+    Número: ${datos.numero_comprobante}
+    Fecha: ${datos.fecha_emision}
+    Monto: $${datos.monto_total?.toLocaleString('es-AR')}
+    
+    Emisor: ${datos.razon_social_emisor}
+    CUIT Emisor: ${datos.cuit_emisor}
+    
+    Receptor: ${datos.razon_social_receptor}
+    CUIT Receptor: ${datos.cuit_receptor}
+    
+    Por favor revisar y aprobar según corresponda.
+    `;
+
+    // TODO: Implementar el envío real del email usando tu servicio de email preferido
+    // Por ahora solo simulamos el envío
+    console.log('📧 Simulando envío de email:');
+    console.log('Asunto:', asunto);
+    console.log('Cuerpo:', cuerpo);
   }
 
   private triggerDownloadV2(file: File, fileName: string) {
