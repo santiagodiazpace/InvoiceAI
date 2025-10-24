@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UtilService } from '../../services/util';
 import { environment } from '../../../environments/environment';
+import emailjs from '@emailjs/browser';
+
+type EmailTemplateParams = Record<string, unknown>;
 
 type DocType = 'informe' | 'factura' | 'orden_de_pago' | 'retenciones' | 'desconocido';
 
@@ -921,30 +924,42 @@ EJEMPLO para Factura E:
 
   // Método para enviar email con los datos de la factura
   private async enviarEmailFactura(datos: ComprobanteInfoV2) {
-    const asunto = `Factura para revisión - ${datos.subtipo_comprobante || 'Factura'} - $${datos.monto_total?.toLocaleString('es-AR')}`;
-    
-    const cuerpo = `
-    Se requiere revisión de la siguiente factura:
-    
-    Tipo: ${datos.subtipo_comprobante}
-    Número: ${datos.numero_comprobante}
-    Fecha: ${datos.fecha_emision}
-    Monto: $${datos.monto_total?.toLocaleString('es-AR')}
-    
-    Emisor: ${datos.razon_social_emisor}
-    CUIT Emisor: ${datos.cuit_emisor}
-    
-    Receptor: ${datos.razon_social_receptor}
-    CUIT Receptor: ${datos.cuit_receptor}
-    
-    Por favor revisar y aprobar según corresponda.
-    `;
+    try {
+      const templateParams: EmailTemplateParams = {
+        to_email: 'admin@invoiceai.com',
+        from_name: 'InvoiceAI System',
+        subject: `Factura para revision - ${datos.subtipo_comprobante || 'Factura'} - $${datos.monto_total?.toLocaleString('es-AR')}`,
+        message: [
+          'Se requiere revision de la siguiente factura:',
+          '',
+          `Tipo: ${datos.subtipo_comprobante}`,
+          `Numero: ${datos.numero_comprobante}`,
+          `Fecha: ${datos.fecha_emision}`,
+          `Monto: $${datos.monto_total?.toLocaleString('es-AR')}`,
+          '',
+          `Emisor: ${datos.razon_social_emisor}`,
+          `CUIT Emisor: ${datos.cuit_emisor}`,
+          '',
+          `Receptor: ${datos.razon_social_receptor}`,
+          `CUIT Receptor: ${datos.cuit_receptor}`,
+          '',
+          'Por favor revisar y aprobar.'
+        ].join('\n')
+      };
 
-    // TODO: Implementar el envío real del email usando tu servicio de email preferido
-    // Por ahora solo simulamos el envío
-    console.log('📧 Simulando envío de email:');
-    console.log('Asunto:', asunto);
-    console.log('Cuerpo:', cuerpo);
+      // Enviar email usando EmailJS
+      await emailjs.send(
+        'service_email_invoiceia', // Tu Service ID de EmailJS
+        'template_6my5ups',  // Tu Template ID de EmailJS
+        templateParams,
+        'ktFlh61zh67x7iPrd'      // Tu Public Key de EmailJS
+      );
+
+      console.log('✅ Email enviado correctamente');
+    } catch (error) {
+      console.error('❌ Error al enviar email:', error);
+      this.error.set('Error al enviar email: ' + (error as Error).message);
+    }
   }
 
   private triggerDownloadV2(file: File, fileName: string) {
@@ -1053,4 +1068,21 @@ EJEMPLO para Factura E:
   toggleSidebar() {
     this.utilService.toggleSidebarState();
   }
+
+ enviarMailFactura(factura: any) {
+  const templateParams = {
+    invoice_number: factura.invoice_number,
+    customer_name: factura.customer_name,
+    amount: factura.amount,
+    items: JSON.stringify(factura.items, null, 2) // convierte array a string
+  };
+
+  emailjs.send('service_email_invoiceia','template_6my5ups', templateParams, 'ktFlh61zh67x7iPrd')
+    .then((response) => {
+      console.log('Email enviado correctamente', response.status, response.text);
+    }, (error) => {
+      console.error('Error enviando email', error);
+    });
+}
+
 }
