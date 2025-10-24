@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DocAI } from './docai';
+//import { DocAI } from './docai';
 import { DocAIV2 } from './docai-v2';
 
 @Component({
   selector: 'app-docai-container',
   standalone: true,
-  imports: [CommonModule, DocAI, DocAIV2],
+  imports: [CommonModule, /* DocAI, */ DocAIV2],
   template: `
     <div class="p-4 md:p-8 min-h-screen bg-gradient-to-br from-background via-background to-background/90">
       <!-- Logo Responsivo -->
@@ -50,7 +50,7 @@ import { DocAIV2 } from './docai-v2';
       <!-- Content -->
       @switch (activeTab) {
         @case ('v1') {
-          <app-docai></app-docai>
+          
         }
         @case ('v2') {
           <app-oda-invoice></app-oda-invoice>

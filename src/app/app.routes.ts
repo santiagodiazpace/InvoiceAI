@@ -3,11 +3,11 @@ import { Routes } from '@angular/router';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: '/oda-invoice',
+    redirectTo: '/invoiceai',
     pathMatch: 'full'
   },
   {
-    path: 'oda-invoice',
+    path: 'invoiceai',
     loadComponent: () => import('./pages/docai/docai-v2').then(m => m.DocAIV2)
   },
   // V1 temporalmente oculto - descomentar si es necesario
@@ -17,6 +17,6 @@ export const routes: Routes = [
   // },
   {
     path: '**',
-    redirectTo: '/oda-invoice'
+    redirectTo: '/invoiceai'
   }
 ];
