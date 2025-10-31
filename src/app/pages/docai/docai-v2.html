@@ -414,13 +414,27 @@
                   </div>
                 </div>
                 
-                <!-- JSON expandido -->
-                <div class="bg-slate-800/40 rounded p-2">
-                  <h4 class="text-xs font-medium text-slate-300 mb-2 flex items-center gap-2">
-                    <i class="fas fa-code text-xs"></i>
-                    JSON Completo:
-                  </h4>
-                  <pre class="text-xs text-slate-400 overflow-auto custom-scrollbar">{{ archivo.data | json }}</pre>
+                <!-- JSON y Validación AFIP en el mismo contenedor -->
+                <div class="bg-slate-800/40 rounded p-3 overflow-y-scroll custom-scrollbar" style="max-height: 700px;">
+                  <!-- JSON Completo -->
+                  <div class="mb-4">
+                    <h4 class="text-xs font-medium text-slate-300 mb-2 flex items-center gap-2">
+                      <i class="fas fa-code text-xs"></i>
+                      JSON Completo:
+                    </h4>
+                    <pre class="text-xs text-slate-400 whitespace-pre-wrap">{{ archivo.data | json }}</pre>
+                  </div>
+
+                  <!-- ✅ Validación AFIP -->
+                  @if (archivo.validacionAFIP) {
+                    <div class="pt-4 border-t border-slate-700/50" style="height: 300px;">
+                      <h4 class="text-sm font-semibold text-blue-300 mb-3 flex items-center gap-2">
+                        <i class="fas fa-shield-alt"></i>
+                        🔍 Validación AFIP
+                      </h4>
+                      <pre class="text-xs text-slate-300 whitespace-pre-wrap leading-relaxed pb-4" style="height: 1000px;">{{ archivo.validacionAFIP }}</pre>
+                    </div>
+                  }
                 </div>
               </div>
             </div>

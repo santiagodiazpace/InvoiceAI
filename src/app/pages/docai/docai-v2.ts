@@ -133,6 +133,7 @@ export class DocAIV2 {
     fullPath: string;
     data: ComprobanteInfoV2;
     ejercicio: string;
+    validacionAFIP?: string; // ✅ Resultado de la validación AFIP
   }>>([]);
   
   // ✅ PROBLEMA 3: Metadata por directorio según Christian - TEMPORALMENTE COMENTADO
@@ -837,6 +838,9 @@ EJEMPLO para Factura E:
       // Guardar los datos extraídos
       this.extractedData.set(out);
 
+      // ✅ VALIDACIÓN AFIP - Segundo prompt
+      const validacionResultado = await this.validarFacturaAFIP(out, b64);
+
       // Rellenar el form con la nueva estructura
       this.form.type = out.tipo_comprobante as DocType || 'desconocido';
       this.form.subtipo = out.subtipo_comprobante || '';
@@ -887,8 +891,8 @@ EJEMPLO para Factura E:
       console.log('📁 Ruta completa V2:', fullPath);
       console.log('📄 Nombre archivo V2:', finalName);
       
-      // Agregar archivo a la lista para que aparezca en la UI
-      this.agregarArchivoProcessado(f, finalName, fullPath, out);
+      // Agregar archivo a la lista para que aparezca en la UI con validación
+      this.agregarArchivoProcessado(f, finalName, fullPath, out, validacionResultado);
 
       // Evaluar el importe y tomar acciones
       this.evaluarImporte(out);
@@ -897,6 +901,113 @@ EJEMPLO para Factura E:
       this.error.set(e?.message || 'No se pudo clasificar con IA V2.');
     } finally {
       this.isProcessing.set(false);
+    }
+  }
+
+  // ✅ NUEVO: Método para validar factura con AFIP usando Gemini
+  private async validarFacturaAFIP(datos: ComprobanteInfoV2, pdfBase64: string): Promise<string> {
+    try {
+      console.log('🔍 Iniciando validación AFIP de la factura...');
+      
+      const promptValidacion = `Actúa como un verificador experto de facturas de AFIP (Administración Federal de Ingresos Públicos de Argentina).
+
+DATOS EXTRAÍDOS DE LA FACTURA:
+- Tipo: ${datos.tipo_comprobante}
+- Subtipo: ${datos.subtipo_comprobante || 'No especificado'}
+- Número: ${datos.numero_comprobante}
+- Fecha: ${datos.fecha_emision}
+- Emisor: ${datos.razon_social_emisor || 'No especificado'}
+- CUIT Emisor: ${datos.cuit_emisor}
+- Receptor: ${datos.razon_social_receptor || 'No especificado'}
+- CUIT Receptor: ${datos.cuit_receptor}
+- Monto: $${datos.monto_total || 'No especificado'}
+- Moneda: ${datos.moneda || 'ARS'}
+
+TAREAS DE VALIDACIÓN:
+
+1. VALIDACIÓN DE NORMAS AFIP:
+   ✓ Verificar formato de CUIT (debe ser 11 dígitos)
+   ✓ Validar estructura del número de comprobante (formato XXXX-XXXXXXXX)
+   ✓ Verificar tipo de factura según relación emisor/receptor
+   ✓ Validar fecha de emisión (no debe ser futura ni muy antigua)
+   ✓ Verificar coherencia entre letra de factura y condición fiscal
+   ✓ Verificar presencia de CAE (Código de Autorización Electrónico)
+
+2. DETECCIÓN DE SIGNOS DE MANIPULACIÓN VISUAL:
+   ⚠️ Buscar inconsistencias en tipografías
+   ⚠️ Detectar alineaciones anormales de texto
+   ⚠️ Identificar posible superposición de textos
+   ⚠️ Analizar calidad de imagen (borrosidad sospechosa)
+   ⚠️ Verificar si números o montos parecen alterados digitalmente
+   ⚠️ Comprobar presencia y coherencia de códigos de barras/QR
+
+3. VALIDACIONES DE COHERENCIA:
+   📊 Verificar relación entre monto en números y letras
+   📊 Validar cálculos de subtotales e IVA
+   📊 Comprobar que los datos del emisor estén completos
+   📊 Verificar coherencia de montos con tipo de factura
+
+RESPONDE EN ESTE FORMATO:
+
+✅ VALIDACIONES EXITOSAS:
+- (lista de validaciones que pasaron correctamente)
+
+⚠️ ADVERTENCIAS:
+- (lista de cosas que requieren atención pero no son críticas)
+
+❌ ERRORES CRÍTICOS:
+- (lista de errores que invalidan la factura)
+
+🔍 SIGNOS DE MANIPULACIÓN DETECTADOS:
+- (lista si hay signos de alteración, o "Ninguno detectado")
+
+📊 NIVEL DE CONFIANZA: (Alto/Medio/Bajo)
+
+💡 RECOMENDACIONES:
+- (lista de acciones sugeridas)`;
+
+      const bodyValidacion = {
+        contents: [{
+          parts: [
+            { inline_data: { mime_type: 'application/pdf', data: pdfBase64 } },
+            { text: promptValidacion }
+          ]
+        }],
+        generationConfig: {
+          maxOutputTokens: 1000,
+          temperature: 0.2
+        }
+      };
+
+      const respValidacion = await fetch(`${environment.apiBase}/ai/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'gemini-2.5-flash-lite',
+          payload: bodyValidacion
+        }),
+      });
+
+      if (!respValidacion.ok) {
+        console.error('⚠️ Error en validación AFIP');
+        return '⚠️ Error al validar la factura con AFIP';
+      }
+
+      const rawValidacion = await respValidacion.json();
+      const validacionText = rawValidacion?.candidates?.[0]?.content?.parts?.[0]?.text || 'No se pudo obtener resultado de validación';
+
+      // Imprimir resultados en consola con formato
+      console.log('\n' + '='.repeat(80));
+      console.log('🔍 RESULTADO DE VALIDACIÓN AFIP');
+      console.log('='.repeat(80));
+      console.log(validacionText);
+      console.log('='.repeat(80) + '\n');
+
+      return validacionText;
+
+    } catch (error) {
+      console.error('❌ Error en validación AFIP:', error);
+      return '❌ Error al procesar la validación AFIP: ' + (error as Error).message;
     }
   }
 
@@ -978,14 +1089,15 @@ EJEMPLO para Factura E:
   }
 
   // Nuevos métodos para organización en carpetas
-  private agregarArchivoProcessado(file: File, fileName: string, fullPath: string, data: ComprobanteInfoV2) {
+  private agregarArchivoProcessado(file: File, fileName: string, fullPath: string, data: ComprobanteInfoV2, validacionAFIP?: string) {
     const archivos = this.archivosProcesados();
     archivos.push({
       file,
       fileName,
       fullPath,
       data,
-      ejercicio: this.selectedEjercicio()
+      ejercicio: this.selectedEjercicio(),
+      validacionAFIP
     });
     this.archivosProcesados.set([...archivos]);
   }
