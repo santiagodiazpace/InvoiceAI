@@ -99,6 +99,13 @@ export class DocAIV2 {
   mostrarPagar = signal<boolean>(false); // Signal para controlar la leyenda PAGAR
   mostrarEmail = signal<boolean>(false); // Signal para controlar la leyenda EMAIL
 
+  // ✅ NUEVO: Chat con IA sobre la factura
+  chatAbierto = signal<boolean>(false);
+  facturaSeleccionadaParaChat = signal<number | null>(null);
+  chatHistory = signal<Array<{role: 'user' | 'assistant', content: string, timestamp: Date}>>([]);
+  chatInput = signal<string>('');
+  chatProcesando = signal<boolean>(false);
+
   // Método para verificar el estado de pago de una factura
   verificarEstadoFactura(monto?: number): 'PAGAR' | 'EMAIL' | null {
     if (!monto) return null;
@@ -118,6 +125,120 @@ export class DocAIV2 {
     
     // Si no hay errores críticos, retornar OK
     return 'OK';
+  }
+
+  // ✅ NUEVO: Métodos para Chat con IA
+  abrirChat(index: number) {
+    this.facturaSeleccionadaParaChat.set(index);
+    this.chatAbierto.set(true);
+    this.chatHistory.set([]);
+    this.chatInput.set('');
+  }
+
+  cerrarChat() {
+    this.chatAbierto.set(false);
+    this.facturaSeleccionadaParaChat.set(null);
+    this.chatHistory.set([]);
+    this.chatInput.set('');
+  }
+
+  async enviarMensajeChat() {
+    const pregunta = this.chatInput().trim();
+    if (!pregunta || this.chatProcesando()) return;
+
+    const indexFactura = this.facturaSeleccionadaParaChat();
+    if (indexFactura === null) return;
+
+    const factura = this.archivosProcesados()[indexFactura];
+    if (!factura) return;
+
+    // Agregar mensaje del usuario al historial
+    this.chatHistory.update(h => [...h, {
+      role: 'user',
+      content: pregunta,
+      timestamp: new Date()
+    }]);
+
+    this.chatInput.set('');
+    this.chatProcesando.set(true);
+
+    try {
+      // Construir el contexto para Gemini
+      const contextoFactura = `
+DATOS DE LA FACTURA:
+${JSON.stringify(factura.data, null, 2)}
+
+VALIDACIÓN AFIP:
+${factura.validacionAFIP || 'No disponible'}
+
+NOMBRE DEL ARCHIVO:
+${factura.fileName}
+
+RUTA:
+${factura.fullPath}
+`;
+
+      // Construir historial de conversación
+      const historialConversacion = this.chatHistory()
+        .slice(-6) // Solo últimos 6 mensajes para no exceder límites
+        .map(m => `${m.role === 'user' ? 'Usuario' : 'Asistente'}: ${m.content}`)
+        .join('\n\n');
+
+      const prompt = `Eres un asistente experto en facturas y normativas de AFIP (Argentina).
+
+${contextoFactura}
+
+HISTORIAL DE CONVERSACIÓN:
+${historialConversacion}
+
+NUEVA PREGUNTA DEL USUARIO:
+${pregunta}
+
+Responde de manera clara, concisa y profesional. Si la pregunta es sobre datos específicos de la factura, usa los datos proporcionados. Si es sobre normativas, explica de forma comprensible.`;
+
+      const body = {
+        contents: [{
+          parts: [{ text: prompt }]
+        }],
+        generationConfig: {
+          maxOutputTokens: 1000,
+          temperature: 0.7
+        }
+      };
+
+      const resp = await fetch(`${environment.apiBase}/ai/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'gemini-2.5-flash-lite',
+          payload: body
+        }),
+      });
+
+      if (!resp.ok) {
+        throw new Error(`HTTP ${resp.status}`);
+      }
+
+      const raw = await resp.json();
+      const respuestaIA = raw?.candidates?.[0]?.content?.parts?.[0]?.text || 'No pude generar una respuesta.';
+
+      // Agregar respuesta al historial
+      this.chatHistory.update(h => [...h, {
+        role: 'assistant',
+        content: respuestaIA,
+        timestamp: new Date()
+      }]);
+
+    } catch (error) {
+      console.error('Error en chat:', error);
+      this.chatHistory.update(h => [...h, {
+        role: 'assistant',
+        content: '❌ Error al procesar tu pregunta. Por favor, intenta de nuevo.',
+        timestamp: new Date()
+      }]);
+    } finally {
+      this.chatProcesando.set(false);
+    }
   }
 
   // Nueva funcionalidad para múltiples archivos

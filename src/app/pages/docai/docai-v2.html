@@ -362,6 +362,15 @@
                     }
                   </div>
                   <button
+                    (click)="abrirChat($index); $event.stopPropagation()"
+                    class="p-1 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded"
+                    title="Chat con IA"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                    </svg>
+                  </button>
+                  <button
                     (click)="eliminarArchivoProcesado($index); $event.stopPropagation()"
                     class="p-1 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded"
                     title="Eliminar"
@@ -460,5 +469,161 @@
       </div>
     </div>
   }
+
+  <!-- ✅ CHAT MODAL -->
+  @if (chatAbierto()) {
+    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+         (click)="cerrarChat()">
+      <div class="bg-slate-800 rounded-xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col border border-slate-700"
+           (click)="$event.stopPropagation()">
+        
+        <!-- Header del Chat -->
+        <div class="p-4 border-b border-slate-700 flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-700">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold text-white">💬 Chat con IA</h3>
+              @if (facturaSeleccionadaParaChat() !== null) {
+                <p class="text-xs text-blue-100">
+                  {{ archivosProcesados()[facturaSeleccionadaParaChat()!].fileName }}
+                </p>
+              }
+            </div>
+          </div>
+          <button
+            (click)="cerrarChat()"
+            class="p-2 hover:bg-white/10 rounded-lg transition-colors text-white"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Mensajes del Chat -->
+        <div class="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar bg-slate-900/50">
+          @if (chatHistory().length === 0) {
+            <div class="text-center py-12">
+              <div class="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                </svg>
+              </div>
+              <h4 class="text-white font-medium mb-2">¡Hola! Soy tu asistente de facturas</h4>
+              <p class="text-slate-400 text-sm">Pregúntame lo que necesites sobre esta factura</p>
+              <div class="mt-6 grid grid-cols-1 gap-2 max-w-md mx-auto text-left">
+                <div class="p-3 bg-slate-800/60 rounded-lg border border-slate-700/50">
+                  <p class="text-xs text-slate-300">💡 "¿Cuál es el monto total de esta factura?"</p>
+                </div>
+                <div class="p-3 bg-slate-800/60 rounded-lg border border-slate-700/50">
+                  <p class="text-xs text-slate-300">💡 "¿Cumple con las normativas de AFIP?"</p>
+                </div>
+                <div class="p-3 bg-slate-800/60 rounded-lg border border-slate-700/50">
+                  <p class="text-xs text-slate-300">💡 "¿Qué errores detectaste en la validación?"</p>
+                </div>
+              </div>
+            </div>
+          }
+
+          @for (mensaje of chatHistory(); track $index) {
+            <div class="flex gap-3"
+                 [class.flex-row-reverse]="mensaje.role === 'user'">
+              <!-- Avatar -->
+              <div class="flex-shrink-0">
+                @if (mensaje.role === 'user') {
+                  <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                  </div>
+                } @else {
+                  <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                  </div>
+                }
+              </div>
+
+              <!-- Contenido del mensaje -->
+              <div class="flex-1 max-w-[80%]">
+                <div class="rounded-lg p-3"
+                     [class.bg-blue-600]="mensaje.role === 'user'"
+                     [class.bg-slate-800/60]="mensaje.role === 'assistant'"
+                     [class.border]="mensaje.role === 'assistant'"
+                     [class.border-slate-700/50]="mensaje.role === 'assistant'">
+                  <p class="text-sm whitespace-pre-wrap"
+                     [class.text-white]="mensaje.role === 'user'"
+                     [class.text-slate-200]="mensaje.role === 'assistant'">{{ mensaje.content }}</p>
+                </div>
+                <p class="text-xs text-slate-500 mt-1"
+                   [class.text-right]="mensaje.role === 'user'">
+                  {{ mensaje.timestamp | date:'shortTime' }}
+                </p>
+              </div>
+            </div>
+          }
+
+          <!-- Indicador de escritura -->
+          @if (chatProcesando()) {
+            <div class="flex gap-3">
+              <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                </svg>
+              </div>
+              <div class="bg-slate-800/60 border border-slate-700/50 rounded-lg p-3">
+                <div class="flex gap-1">
+                  <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
+                  <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
+                  <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Input del Chat -->
+        <div class="p-4 border-t border-slate-700 bg-slate-800/80">
+          <div class="flex gap-2">
+            <input
+              type="text"
+              [value]="chatInput()"
+              (input)="chatInput.set($any($event.target).value)"
+              (keydown.enter)="enviarMensajeChat()"
+              [disabled]="chatProcesando()"
+              placeholder="Escribe tu pregunta sobre la factura..."
+              class="flex-1 bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            >
+            <button
+              (click)="enviarMensajeChat()"
+              [disabled]="!chatInput().trim() || chatProcesando()"
+              class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center gap-2 font-medium text-sm"
+            >
+              @if (chatProcesando()) {
+                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              } @else {
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                </svg>
+              }
+              Enviar
+            </button>
+          </div>
+          <p class="text-xs text-slate-500 mt-2">
+            Presiona Enter para enviar • La IA tiene contexto de la factura y su validación
+          </p>
+        </div>
+      </div>
+    </div>
+  }
+
 
 
