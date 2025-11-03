@@ -1,4 +1,4 @@
-# 🧾 InvoiceAI
+# 🧾 InvoiceIA
 
 <div align="center">
 
@@ -19,12 +19,9 @@
 
 - [Descripción](#-descripción)
 - [Características](#-características)
-- [Tecnologías](#-tecnologías)
 - [Instalación](#️-instalación)
 - [Uso](#-uso)
-- [Arquitectura](#-arquitectura)
 - [Deploy](#-deploy)
-- [Contribuir](#-contribuir)
 
 ---
 
@@ -38,7 +35,6 @@
 2. **🤖 Extracción automática** - IA extrae todos los datos relevantes (CUIT, montos, fechas, etc.)
 3. **✅ Validación AFIP** - Verifica cumplimiento con normativas argentinas
 4. **💬 Chat inteligente** - Pregunta sobre la factura y obtén respuestas instantáneas
-5. **📊 Clasificación automática** - Organiza facturas por tipo, empresa y fecha
 
 ---
 
@@ -49,7 +45,6 @@
 - ✅ **Tipos de comprobantes**: Facturas A/B/C/E, FCE, Notas de Crédito/Débito
 - ✅ **Datos extraídos**: CUIT emisor/receptor, montos, fechas, números de comprobante
 - ✅ **Confianza del análisis**: Sistema de scoring de precisión
-- ✅ **Procesamiento por lotes**: Analiza múltiples facturas simultáneamente
 
 ### 🛡️ Validación AFIP
 
@@ -65,17 +60,11 @@
 - 💡 Obtén explicaciones sobre errores detectados
 - 💡 Historial de conversación contextual
 
-### 🎨 Interfaz Moderna
-
-- 🌙 **Diseño Dark Mode** profesional
-- ⚡ **Drag & Drop** para carga de archivos
-- 📱 **Responsive** - Funciona en móviles, tablets y escritorio
-- 🎭 **Animaciones fluidas** con AOS (Animate On Scroll)
 
 ### 📊 Sistema de Clasificación
 
 - **PAGAR** (< $50,000): Requiere pago inmediato
-- **EMAIL** (≥ $50,000): Requiere aprobación por correo
+- **EMAIL** (≥ $50,000): Requiere aprobación, envía e-mail a destinatario definido
 - **✓ OK** / **✗ ERROR**: Estado de validación AFIP
 
 ---
@@ -92,6 +81,8 @@
 ### IA & APIs
 - **Google Gemini 2.5 Flash Lite** - Modelo de IA para extracción y validación
 - **Proxy API personalizado** - Gestión segura de llamadas a Gemini
+- Frontend solo conoce el endpoint del proxy: https://gemini-proxy-ewww.onrender.com (https://render.com/)
+La API KEY está en las variables de entorno de Render (servidor backend).
 
 ### Herramientas
 - **Jest** - Testing unitario
@@ -139,13 +130,7 @@ npm start
 3. Espera mientras la IA extrae los datos y valida
 4. Revisa los resultados extraídos y la validación AFIP
 
-### 2️⃣ Procesar Múltiples Facturas
-
-1. Selecciona o arrastra varios archivos PDF
-2. La app los procesará uno por uno automáticamente
-3. Cada factura se añadirá a la lista de "Archivos Procesados"
-
-### 3️⃣ Chatear sobre una Factura
+### 2️⃣ Chat 
 
 1. En la lista de archivos procesados, haz clic en el ícono 💬
 2. Escribe tu pregunta (ej: "¿Cuál es el CUIT del emisor?")
@@ -267,18 +252,6 @@ npm run test:watch
 
 ---
 
-## 🤝 Contribuir
-
-¡Las contribuciones son bienvenidas! Si quieres mejorar el proyecto:
-
-1. Fork el repositorio
-2. Crea una rama para tu feature (`git checkout -b feature/amazing-feature`)
-3. Commit tus cambios (`git commit -m 'Add: amazing feature'`)
-4. Push a la rama (`git push origin feature/amazing-feature`)
-5. Abre un Pull Request
-
----
-
 ## 📄 Licencia
 
 Este proyecto es privado y está en desarrollo activo.
@@ -291,15 +264,6 @@ Este proyecto es privado y está en desarrollo activo.
 
 - GitHub: [@santiagodiazpace](https://github.com/santiagodiazpace)
 - Proyecto: [InvoiceAI](https://github.com/santiagodiazpace/InvoiceAI)
-
----
-
-## 🙏 Agradecimientos
-
-- **Google Gemini** por el modelo de IA
-- **Angular Team** por el framework
-- **Tailwind CSS** por el sistema de diseño
-- **AFIP** por la documentación de normativas
 
 ---
 
