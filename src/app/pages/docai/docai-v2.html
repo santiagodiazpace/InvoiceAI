@@ -352,6 +352,14 @@
                         <span class="text-xs px-2 py-0.5 bg-blue-500 text-white rounded-full">E-MAIL</span>
                       }
                     }
+                    @switch (verificarValidacionAFIP(archivo?.validacionAFIP)) {
+                      @case ('OK') {
+                        <span class="text-xs px-2 py-0.5 bg-green-600 text-white rounded-full font-semibold">✓ OK</span>
+                      }
+                      @case ('ERROR') {
+                        <span class="text-xs px-2 py-0.5 bg-red-600 text-white rounded-full font-semibold">✗ ERROR</span>
+                      }
+                    }
                   </div>
                   <button
                     (click)="eliminarArchivoProcesado($index); $event.stopPropagation()"

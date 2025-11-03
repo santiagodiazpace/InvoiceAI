@@ -105,6 +105,21 @@ export class DocAIV2 {
     return monto < 50000 ? 'PAGAR' : 'EMAIL';
   }
 
+  // Método para verificar el estado de validación AFIP
+  verificarValidacionAFIP(validacion?: string): 'OK' | 'ERROR' | null {
+    if (!validacion) return null;
+    
+    // Buscar errores críticos en el texto de validación
+    const tieneErroresCriticos = validacion.includes('❌ ERRORES CRÍTICOS:') && 
+                                  !validacion.includes('❌ ERRORES CRÍTICOS:\n- Ninguno detectado');
+    
+    // Si hay errores críticos, retornar ERROR
+    if (tieneErroresCriticos) return 'ERROR';
+    
+    // Si no hay errores críticos, retornar OK
+    return 'OK';
+  }
+
   // Nueva funcionalidad para múltiples archivos
   colaArchivos = signal<File[]>([]);
   archivoActual = signal<number>(0);
