@@ -1,4 +1,5 @@
 export const environment = {
   production: true,
-  apiBase: 'https://gemini-proxy-ewww.onrender.com',
+  // Usando proxy CORS temporal - cambiar cuando tu backend tenga CORS configurado
+  apiBase: 'https://cors-anywhere.herokuapp.com/https://gemini-proxy-ewww.onrender.com',
 };
