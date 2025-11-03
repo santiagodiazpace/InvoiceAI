@@ -93,6 +93,7 @@ export class DocAIV2 {
   file = signal<File | null>(null);
   error = signal<string | null>(null);
   isProcessing = signal<boolean>(false);
+  processingState = signal<'idle' | 'obteniendo' | 'validando'>('idle'); // ✅ NUEVO: Estado del procesamiento
   extractedData = signal<ComprobanteInfoV2 | null>(null);
   isDragOver = signal<boolean>(false);
   dragFileCount = signal<number>(0); // Contador de archivos durante drag
@@ -446,6 +447,7 @@ Responde de manera clara, concisa y profesional. Si la pregunta es sobre datos e
     }
 
     this.isProcessing.set(true);
+    this.processingState.set('obteniendo'); // ✅ Estado inicial
     this.error.set(null);
 
     try {
@@ -473,6 +475,7 @@ Responde de manera clara, concisa y profesional. Si la pregunta es sobre datos e
       this.error.set('Error procesando múltiples archivos: ' + (error as Error).message);
     } finally {
       this.isProcessing.set(false);
+      this.processingState.set('idle'); // ✅ Resetear estado
     }
   }
 
@@ -591,6 +594,10 @@ EJEMPLO para Factura E:
     const text = raw?.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
     const out = JSON.parse(text) as ComprobanteInfoV2;
 
+    // ✅ VALIDACIÓN AFIP para archivos múltiples
+    this.processingState.set('validando'); // ✅ Cambiar estado
+    const validacionResultado = await this.validarFacturaAFIP(out, b64);
+
     // Generar nombre y agregar a archivos procesados
     const tempForm = {
       type: out.tipo_comprobante as DocType || 'desconocido',
@@ -605,7 +612,9 @@ EJEMPLO para Factura E:
     const finalName = this.generateFileName(tempForm);
     const fullPath = this.generateFullPath(tempForm, finalName);
 
-    this.agregarArchivoProcessado(file, finalName, fullPath, out);
+    this.agregarArchivoProcessado(file, finalName, fullPath, out, validacionResultado);
+    
+    this.processingState.set('obteniendo'); // ✅ Volver a estado obteniendo para siguiente archivo
 
     return out;
   }
@@ -855,6 +864,7 @@ EJEMPLO para Factura E:
     }
 
     this.isProcessing.set(true);
+    this.processingState.set('obteniendo'); // ✅ Estado: Obteniendo datos
     this.error.set(null);
     
     // Si no estamos procesando múltiples archivos, limpiar la lista anterior
@@ -975,6 +985,7 @@ EJEMPLO para Factura E:
       this.extractedData.set(out);
 
       // ✅ VALIDACIÓN AFIP - Segundo prompt
+      this.processingState.set('validando'); // ✅ Estado: Validando
       const validacionResultado = await this.validarFacturaAFIP(out, b64);
 
       // Rellenar el form con la nueva estructura
@@ -1037,6 +1048,7 @@ EJEMPLO para Factura E:
       this.error.set(e?.message || 'No se pudo clasificar con IA V2.');
     } finally {
       this.isProcessing.set(false);
+      this.processingState.set('idle'); // ✅ Resetear estado
     }
   }
 
