@@ -27,7 +27,7 @@
 
 ## 🎯 Descripción
 
-**InvoiceAI** es una aplicación web moderna que utiliza **Inteligencia Artificial** (Google Gemini) para automatizar el procesamiento, extracción de datos y validación de facturas PDF según las normativas de **AFIP** (Argentina).
+**InvoiceIA** es una aplicación web que utiliza **Inteligencia Artificial** (Google Gemini) para automatizar el procesamiento, extracción de datos y validación de facturas PDF según las normativas de **AFIP** (Argentina).
 
 ### ✨ ¿Qué hace?
 
@@ -35,7 +35,8 @@
 2. **🤖 Extracción automática** - IA extrae todos los datos relevantes (CUIT, montos, fechas, etc.)
 3. **✅ Validación AFIP** - Verifica cumplimiento con normativas argentinas
 4. **💬 Chat inteligente** - Pregunta sobre la factura y obtén respuestas instantáneas
-
+5. **💬 Ejemplo de toma de decisiones** - Según importe de factura (Pagar / Confirmar por e-mail)
+   
 ---
 
 ## 🚀 Características
@@ -77,6 +78,7 @@
 - **Signals** - Gestión de estado reactivo
 - **Tailwind CSS** - Estilos utility-first
 - **SCSS** - Estilos personalizados
+- **EmailJS** - Dependencia de envío de e-mail
 
 ### IA & APIs
 - **Google Gemini 2.5 Flash Lite** - Modelo de IA para extracción y validación
@@ -123,20 +125,20 @@ npm start
 
 ## 📖 Uso
 
-### 1️⃣ Procesar una Factura Individual
+### 1️ Procesar una Factura Individual
 
 1. Arrastra un PDF o haz clic en la zona de carga
 2. Presiona el botón verde **"🤖 Procesar IA"**
 3. Espera mientras la IA extrae los datos y valida
 4. Revisa los resultados extraídos y la validación AFIP
 
-### 2️⃣ Chat 
+### 2 Chat 
 
 1. En la lista de archivos procesados, haz clic en el ícono 💬
 2. Escribe tu pregunta (ej: "¿Cuál es el CUIT del emisor?")
 3. La IA responderá usando el contexto de la factura
 
-### 4️⃣ Estados del Procesamiento
+### 3 Estados del Procesamiento
 
 Durante el procesamiento, el botón muestra:
 - **"Obteniendo datos..."** - Extrayendo información del PDF
