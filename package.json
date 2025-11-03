@@ -10,9 +10,8 @@
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",
     "test:ci": "jest --ci --coverage --watchAll=false",
-    "protoODAInvoice": "ng build --configuration production --base-href \"/protoODAInvoice/\"",
-    "server": "ng build --configuration production --base-href \"/odainvoiceFolder/\"",
-    "deploy": "npx angular-cli-ghpages --dir=dist/ODAInvoice/browser"
+    "build:gh-pages": "ng build --configuration production --base-href /InvoiceAI/",
+    "deploy": "npm run build:gh-pages && npx angular-cli-ghpages --dir=dist/oda-invoice/browser"
   },
   "prettier": {
     "overrides": [
