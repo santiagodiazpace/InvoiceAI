@@ -235,11 +235,6 @@ npm run test:watch
 
 ## 🎨 Características UI/UX
 
-### Drag & Drop Inteligente
-- Detecta cantidad de archivos al arrastrar
-- Cambia color según archivos (azul para 1, violeta para múltiples)
-- Animaciones suaves durante el arrastre
-
 ### Validación Visual
 - **Badge Verde (✓ OK)**: Factura válida según AFIP
 - **Badge Rojo (✗ ERROR)**: Errores críticos detectados
